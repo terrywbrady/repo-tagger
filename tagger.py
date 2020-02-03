@@ -7,6 +7,8 @@ import shutil
 import yaml
 import re
 import sys
+import argparse
+from dateutil.parser import parse as dateparse
 
 class MyTagger:
     def __init__(self):
@@ -15,7 +17,34 @@ class MyTagger:
         self.repos = self.config['repositories']
         self.release = self.config['release-repo']
         self.workdir = "/tmp/tagger"
-        self.initDir()
+        self.parser = self.getParser()
+
+    def parseDate(self, date):
+        return dateparse(date)
+
+    def getParser(self):
+        parser = argparse.ArgumentParser(prog='tagger.py')
+        subparsers=parser.add_subparsers()
+        sp_sprint=subparsers.add_parser('sprint')
+        sp_sprint.add_argument('num', nargs=1, type=int)
+        sp_sprint.add_argument('--as-of-date', nargs=1, type=self.parseDate)
+        sp_sprint.add_argument('--since', nargs=1)
+        sp_sprint.set_defaults(action=self.tagSprint)
+
+        sp_deploy=subparsers.add_parser('deploy')
+        sp_deploy.add_argument('--deploy-date', nargs=1, type=self.parseDate)
+        sp_deploy.add_argument('--since', nargs=1)
+        sp_deploy.set_defaults(action=self.tagDeploy)
+
+        sp_report=subparsers.add_parser('report')
+        sp_report.add_argument('--since', nargs=1, required=True)
+        sp_report.add_argument('--until', nargs=1)
+        sp_report.set_defaults(action=self.tagReport)
+        return parser
+
+    def parse(self):
+        args = self.parser.parse_args()
+        args.action(args)
 
     def loadYaml(self, f):
         with open(f, 'r') as stream:
@@ -86,6 +115,21 @@ class MyTagger:
             self.clone(repo)
             self.tag(repo, tag)
 
+    def tagSprint(self, args):
+        print('sprint {}'.format(args.num))
+
+    def tagDeploy(self):
+        print('deploy')
+
+    def tagReport(self):
+        print('report')
+
+
 myTagger = MyTagger()
-tag = myTagger.getArgv(1, "tag")
-myTagger.processRepos(tag)
+myTagger.parse()
+
+print(1)
+
+#myTagger.initDir()
+#tag = myTagger.getArgv(1, "tag")
+#myTagger.processRepos(tag)
