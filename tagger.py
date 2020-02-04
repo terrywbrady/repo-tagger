@@ -14,6 +14,7 @@ import subprocess
 class MyTagger:
     def __init__(self):
         #self.config = ConfigParser.RawConfigParser()
+        self.pwd = os.getcwd()
         self.config = self.loadYaml("config.yml")
         self.repos = self.config['repositories']
         self.release = self.config['release-repo']
@@ -22,6 +23,12 @@ class MyTagger:
 
     def parseDate(self, date):
         return dateparse(date).strftime("%Y-%m-%d")
+
+    def parseTag(self, tag):
+        if (re.match(r'^(sprint-|deploy-).*', tag)):
+            return tag
+        print("Only 'sprint-' and 'deploy-' tags can be deleted.")
+        self.parser.usage()
 
     def getParser(self):
         parser = argparse.ArgumentParser(prog='tagger.py')
@@ -39,8 +46,12 @@ class MyTagger:
 
         sp_report=subparsers.add_parser('report')
         sp_report.add_argument('--since', nargs=1, required=True)
-        sp_report.add_argument('--until', nargs=1, default="master")
+        sp_report.add_argument('--until', nargs=1, default=["master"])
         sp_report.set_defaults(action=self.tagReport)
+
+        sp_delete=subparsers.add_parser('delete')
+        sp_delete.add_argument('tag', nargs=1, type=self.parseTag)
+        sp_delete.set_defaults(action=self.tagDelete)
         return parser
 
     def parse(self):
@@ -149,17 +160,25 @@ class MyTagger:
         for repo in self.repos:
             self.tag(repo, tag, date)
 
-    def tagDeploy(self):
+    def tagDeploy(self, args):
         print('deploy')
 
+    def tagDelete(self, args):
+        for repo in self.repos:
+            self.dir(self.getCloneDir(repo))
+            tag=args.tag[0] if args.tag else "not-applicable"
+            self.oscall("git tag -d {}".format(tag))
+            self.oscall("git push --delete origin {}".format(tag))
+
     def tagReport(self, args):
-        rpt = "{}/report.md".format(self.workdir)
-        self.oscall("echo '# Release Report' > {}".format(rpt))
+        since=args.since[0]
+        until=args.until[0]
+        rpt = "{}/report.md".format(self.pwd)
+        print(rpt)
+        self.oscall("echo '# Release Report ({} - {})' > {}".format(since, until, rpt))
         for repo in self.repos:
             self.dir(self.getCloneDir(repo))
             self.oscall("echo '## {}' >> {}".format(self.getRepoName(repo), rpt))
-            since=args.since[0]
-            until=args.until
             self.oscall("git log --date=short --format='- %h %ad %s' {}..{} >> {}".format(since,until,rpt))
         self.oscall("cat {}".format(rpt))
 
