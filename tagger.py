@@ -9,6 +9,7 @@ import re
 import sys
 import argparse
 from dateutil.parser import parse as dateparse
+import subprocess
 
 class MyTagger:
     def __init__(self):
@@ -20,7 +21,7 @@ class MyTagger:
         self.parser = self.getParser()
 
     def parseDate(self, date):
-        return dateparse(date)
+        return dateparse(date).strftime("%Y-%m-%d")
 
     def getParser(self):
         parser = argparse.ArgumentParser(prog='tagger.py')
@@ -38,13 +39,12 @@ class MyTagger:
 
         sp_report=subparsers.add_parser('report')
         sp_report.add_argument('--since', nargs=1, required=True)
-        sp_report.add_argument('--until', nargs=1)
+        sp_report.add_argument('--until', nargs=1, default="master")
         sp_report.set_defaults(action=self.tagReport)
         return parser
 
     def parse(self):
-        args = self.parser.parse_args()
-        args.action(args)
+        return self.parser.parse_args()
 
     def loadYaml(self, f):
         with open(f, 'r') as stream:
@@ -92,13 +92,42 @@ class MyTagger:
             command += " >> clone.txt 2>&1"
         os.system(command)
 
-    def tag(self, repo, tag):
+    def getCommit(self, date):
+        if (date == None):
+            res = subprocess.run(
+                [
+                    "git",
+                    "rev-list",
+                    "-1",
+                    "master"
+                ],
+                capture_output=True
+            )
+            return res.stdout.decode("utf-8").strip('\n')
+        else:
+            res = subprocess.run(
+                [
+                    "git",
+                    "rev-list",
+                    "-1",
+                    "--before",
+                    date,
+                    "master"
+                ],
+                capture_output=True
+            )
+            return res.stdout.decode("utf-8").strip('\n')
+
+    def tag(self, repo, tag, date):
         try:
             name = self.getRepoName(repo)
             print("Tagging {} with {}".format(name, tag))
             self.dir(self.getCloneDir(repo))
-            self.oscall("git tag {}".format(tag))
-            self.oscall("git push origin {}".format(tag))
+            commit = self.getCommit(date)
+            print(commit)
+            if (commit != ""):
+                self.oscall("git tag {} {}".format(tag, commit))
+                self.oscall("git push origin {}".format(tag))
         except Exception as e:
             print(e)
             exit("Could not tag: {} with {}".format(repo, tag))
@@ -110,26 +139,32 @@ class MyTagger:
     def getCloneDir(self, repo):
         return '{}/{}'.format(self.workdir, self.getRepoName(repo))
 
-    def processRepos(self, tag):
+    def cloneRepos(self):
         for repo in self.repos:
             self.clone(repo)
-            self.tag(repo, tag)
 
     def tagSprint(self, args):
-        print('sprint {}'.format(args.num))
+        tag='sprint-{}'.format(args.num[0])
+        date=args.as_of_date[0] if args.as_of_date else None
+        for repo in self.repos:
+            self.tag(repo, tag, date)
 
     def tagDeploy(self):
         print('deploy')
 
-    def tagReport(self):
-        print('report')
-
+    def tagReport(self, args):
+        rpt = "{}/report.md".format(self.workdir)
+        self.oscall("echo '# Release Report' > {}".format(rpt))
+        for repo in self.repos:
+            self.dir(self.getCloneDir(repo))
+            self.oscall("echo '## {}' >> {}".format(self.getRepoName(repo), rpt))
+            since=args.since[0]
+            until=args.until
+            self.oscall("git log --date=short --format='- %h %ad %s' {}..{} >> {}".format(since,until,rpt))
+        self.oscall("cat {}".format(rpt))
 
 myTagger = MyTagger()
-myTagger.parse()
-
-print(1)
-
-#myTagger.initDir()
-#tag = myTagger.getArgv(1, "tag")
-#myTagger.processRepos(tag)
+args = myTagger.parse()
+myTagger.initDir()
+myTagger.cloneRepos()
+args.action(args)
