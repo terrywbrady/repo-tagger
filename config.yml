@@ -1,5 +1,41 @@
 release-repo: git@github.com:terrywbrady/mrt-doc.git
 repositories:
+  - git@github.com:terrywbrady/mrt-doc.git
   - git@github.com:terrywbrady/repo-tagger.git
   - git@github.com:terrywbrady/boto3-s3-scripts.git
   - git@github.com:terrywbrady/merritt-docker.git
+sprint-template: >
+  ## Major accomplishments:
+
+deploy-template: >
+  ## Service(s)
+
+
+  ## Servers affected
+
+
+  ## Change Description
+
+
+  ## Github issue
+
+  Link(s)
+  -
+
+  ## Source Code:
+
+  Link(s) to tagged release(s)
+  -
+
+  ## Infrastructure Changes to support software (ALB, EFS, etc)
+
+
+  ## Jenkins: (if applicable)
+
+  ### Build name/number
+
+  ### Build URL
+
+
+  ## Upgrade Steps (if applicable)
+  - [ ] Action Step 1

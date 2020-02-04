@@ -8,6 +8,7 @@ import yaml
 import re
 import sys
 import argparse
+import datetime
 from dateutil.parser import parse as dateparse
 import subprocess
 
@@ -30,6 +31,9 @@ class MyTagger:
         print("Only 'sprint-' and 'deploy-' tags can be deleted.")
         self.parser.usage()
 
+    def defaultDate(self):
+        return [datetime.datetime.today().strftime("%Y-%m-%d")]
+
     def getParser(self):
         parser = argparse.ArgumentParser(prog='tagger.py')
         subparsers=parser.add_subparsers()
@@ -37,11 +41,13 @@ class MyTagger:
         sp_sprint.add_argument('num', nargs=1, type=int)
         sp_sprint.add_argument('--as-of-date', nargs=1, type=self.parseDate)
         sp_sprint.add_argument('--since', nargs=1)
+        sp_sprint.add_argument('--title', nargs=1, default=[""])
         sp_sprint.set_defaults(action=self.tagSprint)
 
         sp_deploy=subparsers.add_parser('deploy')
-        sp_deploy.add_argument('--deploy-date', nargs=1, type=self.parseDate)
+        sp_deploy.add_argument('--deploy-date', nargs=1, type=self.parseDate, default=self.defaultDate())
         sp_deploy.add_argument('--since', nargs=1)
+        sp_deploy.add_argument('--title', nargs=1, default=[""])
         sp_deploy.set_defaults(action=self.tagDeploy)
 
         sp_report=subparsers.add_parser('report')
@@ -129,7 +135,7 @@ class MyTagger:
             )
             return res.stdout.decode("utf-8").strip('\n')
 
-    def tag(self, repo, tag, date):
+    def tag(self, repo, tag, date, title):
         try:
             name = self.getRepoName(repo)
             print("Tagging {} with {}".format(name, tag))
@@ -137,7 +143,7 @@ class MyTagger:
             commit = self.getCommit(date)
             print(commit)
             if (commit != ""):
-                self.oscall("git tag {} {}".format(tag, commit))
+                self.oscall("git tag -a -m '{}' {} {}".format(title, tag, commit))
                 self.oscall("git push origin {}".format(tag))
         except Exception as e:
             print(e)
@@ -156,12 +162,20 @@ class MyTagger:
 
     def tagSprint(self, args):
         tag='sprint-{}'.format(args.num[0])
+        title='Sprint {}: {}'.format(args.num[0], args.title[0])
         date=args.as_of_date[0] if args.as_of_date else None
         for repo in self.repos:
-            self.tag(repo, tag, date)
+            self.tag(repo, tag, date, title)
+        if (args.since):
+            self.tagReportRange("sprint-template", title, args.since[0], tag)
 
     def tagDeploy(self, args):
-        print('deploy')
+        date=args.deploy_date[0]
+        tag='deploy-{}'.format(date)
+        title='Deployment {}: {}'.format(date, args.title[0])
+        if (args.since):
+            self.tagReportRange("deploy-template", title, args.since[0], self.getCommit(None))
+        self.tag(self.release, tag, date, title)
 
     def tagDelete(self, args):
         for repo in self.repos:
@@ -173,14 +187,20 @@ class MyTagger:
     def tagReport(self, args):
         since=args.since[0]
         until=args.until[0]
+        self.tagReportRange("", "", since, until)
+
+    def tagReportRange(self, label, title, since, until):
         rpt = "{}/report.md".format(self.pwd)
-        print(rpt)
-        self.oscall("echo '# Release Report ({} - {})' > {}".format(since, until, rpt))
+        self.oscall("echo '# {} Release Report ({} - {})' > {}".format(title, since, until, rpt))
+        if (label in self.config):
+            self.oscall('echo "{}" >> {}'.format(self.config[label], rpt))
         for repo in self.repos:
             self.dir(self.getCloneDir(repo))
             self.oscall("echo '## {}' >> {}".format(self.getRepoName(repo), rpt))
             self.oscall("git log --date=short --format='- %h %ad %s' {}..{} >> {}".format(since,until,rpt))
-        self.oscall("cat {}".format(rpt))
+        print()
+        print(" ** Paste the contents of {} into {}".format(rpt, self.getRepoName(self.release)))
+        print()
 
 myTagger = MyTagger()
 args = myTagger.parse()
