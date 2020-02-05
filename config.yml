@@ -24,15 +24,17 @@ x-repositories:
   - git@github.com:CDLUC3/mrt-zoo.git
   - git@github.com:CDLUC3/mrt-core2.git
   - git@github.com:CDLUC3/cdl-zk-queue.git
-  # Needed?
+  # Mark verified the following are Needed
+  - git@github.com:CDLUC3/mrt-jenkins-docker.git
+  - git@github.com:CDLUC3/mrt-ingest-ruby.git
+  - git@github.com:CDLUC3/mrt-dataONE.git
+  # Mark verified the following are not needed
+  # - git@github.com:CDLUC3/mrt-cshadmin.git - not needed per Mark
+  # Needed? David to review
   - git@github.com:CDLUC3/mrt-store-admin.git
   - git@github.com:CDLUC3/mrt-store-config.git
-  - git@github.com:CDLUC3/mrt-jenkins-docker.git
   - git@github.com:CDLUC3/mrt-tind-harvester.git
-  - git@github.com:CDLUC3/mrt-ingest-ruby.git
-  - git@github.com:CDLUC3/mrt-cshadmin.git
   - git@github.com:CDLUC3/mrt-cloudhost-pub.git
-  - git@github.com:CDLUC3/mrt-dataONE.git
   - git@github.com:CDLUC3/merritt-manifest.git
   # TODO - create copy and add 4 private repos
 sprint-template: >
