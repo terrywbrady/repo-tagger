@@ -30,7 +30,7 @@ x-repositories:
   - git@github.com:CDLUC3/mrt-dataONE.git
   # Mark verified the following are not needed
   # - git@github.com:CDLUC3/mrt-cshadmin.git - not needed per Mark
-  # Needed? David to review
+  # David confirmed that these are needed
   - git@github.com:CDLUC3/mrt-store-admin.git
   - git@github.com:CDLUC3/mrt-store-config.git
   - git@github.com:CDLUC3/mrt-tind-harvester.git
