@@ -135,11 +135,11 @@ class MyTagger:
             )
             return res.stdout.decode("utf-8").strip('\n')
 
-    def tag(self, repo, tag, date, title):
+    def tag(self, repocfg, tag, date, title):
         try:
-            name = self.getRepoName(repo)
+            name = self.getRepoName(repocfg)
             print("Tagging {} with {}".format(name, tag))
-            self.dir(self.getCloneDir(repo))
+            self.dir(self.getCloneDir(repocfg))
             commit = self.getCommit(date)
             print(commit)
             if (commit != ""):
@@ -149,23 +149,23 @@ class MyTagger:
             print(e)
             exit("Could not tag: {} with {}".format(repo, tag))
 
-    def getRepoName(self, repo):
-        m=re.search(r'/([^/]+)\.git\s*$', repo)
+    def getRepoName(self, repocfg):
+        m=re.search(r'/([^/]+)\.git\s*$', repocfg['repo'])
         return m.group(1)
 
-    def getCloneDir(self, repo):
-        return '{}/{}'.format(self.workdir, self.getRepoName(repo))
+    def getCloneDir(self, repocfg):
+        return '{}/{}'.format(self.workdir, self.getRepoName(repocfg['repo']))
 
     def cloneRepos(self):
-        for repo in self.repos:
-            self.clone(repo)
+        for repocfg in self.repos:
+            self.clone(repocfg['repo'])
 
     def tagSprint(self, args):
         tag='sprint-{}'.format(args.num[0])
         title='Sprint {}: {}'.format(args.num[0], args.title[0])
         date=args.as_of_date[0] if args.as_of_date else None
-        for repo in self.repos:
-            self.tag(repo, tag, date, title)
+        for repocfg in self.repos:
+            self.tag(repocfg, tag, date, title)
         if (args.since):
             self.tagReportRange("sprint-template", title, args.since[0], tag)
 
@@ -178,8 +178,8 @@ class MyTagger:
         self.tag(self.release, tag, date, title)
 
     def tagDelete(self, args):
-        for repo in self.repos:
-            self.dir(self.getCloneDir(repo))
+        for repocfg in self.repos:
+            self.dir(self.getCloneDir(repocfg))
             tag=args.tag[0] if args.tag else "not-applicable"
             self.oscall("git tag -d {}".format(tag))
             self.oscall("git push --delete origin {}".format(tag))
@@ -194,9 +194,9 @@ class MyTagger:
         self.oscall("echo '# {} Release Report ({} - {})' > {}".format(title, since, until, rpt))
         if (label in self.config):
             self.oscall('echo "{}" >> {}'.format(self.config[label], rpt))
-        for repo in self.repos:
-            self.dir(self.getCloneDir(repo))
-            self.oscall("echo '## {}' >> {}".format(self.getRepoName(repo), rpt))
+        for repocfg in self.repos:
+            self.dir(self.getCloneDir(repocfg))
+            self.oscall("echo '## {}' >> {}".format(self.getRepoName(repocfg), rpt))
             self.oscall("git log --date=short --format='- %h %ad %s' {}..{} >> {}".format(since,until,rpt))
         print()
         print(" ** Paste the contents of {} into {}".format(rpt, self.getRepoName(self.release)))

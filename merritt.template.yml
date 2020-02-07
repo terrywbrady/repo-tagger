@@ -1,0 +1,65 @@
+release-repo: git@github.com:CDLUC3/mrt-doc.git
+repositories:
+  - git@github.com:CDLUC3/mrt-dashboard.git
+  - git@github.com:CDLUC3/tomcat8_catalina_base.git
+  - git@github.com:CDLUC3/mrt-tomcat.git
+  - git@github.com:CDLUC3/uc3-etds.git
+  - git@github.com:CDLUC3/mrt-inventory.git
+  - git@github.com:CDLUC3/merritt-docker.git
+  - git@github.com:CDLUC3/mrt-ingest.git
+  - git@github.com:CDLUC3/mrt-doc.git
+  - git@github.com:CDLUC3/mrt-sword.git
+  - git@github.com:CDLUC3/mrt-oai.git
+  - git@github.com:CDLUC3/mrt-audit.git
+  - git@github.com:CDLUC3/mrt-replic.git
+  - git@github.com:CDLUC3/mrt-store.git
+  - git@github.com:CDLUC3/mrt-cloud.git
+  - git@github.com:CDLUC3/mrt-zoo.git
+  - git@github.com:CDLUC3/mrt-core2.git
+  - git@github.com:CDLUC3/cdl-zk-queue.git
+  # Mark verified the following are Needed
+  - git@github.com:CDLUC3/mrt-jenkins-docker.git
+  - git@github.com:CDLUC3/mrt-ingest-ruby.git
+  - git@github.com:CDLUC3/mrt-dataONE.git
+  # David confirmed that these are needed
+  - git@github.com:CDLUC3/mrt-store-admin.git
+  - git@github.com:CDLUC3/mrt-store-config.git
+  - git@github.com:CDLUC3/mrt-tind-harvester.git
+  - git@github.com:CDLUC3/mrt-cloudhost-pub.git
+  - git@github.com:CDLUC3/merritt-manifest.git
+  # TODO - create copy and add 4 private repos
+sprint-template: >
+  ## Major accomplishments:
+
+deploy-template: >
+  ## Service(s)
+
+
+  ## Servers affected
+
+
+  ## Change Description
+
+
+  ## Github issue
+
+  Link(s)
+  -
+
+  ## Source Code:
+
+  Link(s) to tagged release(s)
+  -
+
+  ## Infrastructure Changes to support software (ALB, EFS, etc)
+
+
+  ## Jenkins: (if applicable)
+
+  ### Build name/number
+
+  ### Build URL
+
+
+  ## Upgrade Steps (if applicable)
+  - [ ] Action Step 1
