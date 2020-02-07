@@ -136,6 +136,12 @@ class MyTagger:
             return res.stdout.decode("utf-8").strip('\n')
 
     def tag(self, repocfg, tag, date, title):
+        self.tagBranch(repocfg, "master", tag, date, title)
+        if ('branches' in repocfg):
+            for branch in repocfg['branches']:
+                self.tagBranch(repocfg, branch, "{}-{}".format(tag, branch), date, title)
+
+    def tagBranch(self, repocfg, branch, tag, date, title):
         try:
             name = self.getRepoName(repocfg)
             print("Tagging {} with {}".format(name, tag))
@@ -147,14 +153,15 @@ class MyTagger:
                 self.oscall("git push origin {}".format(tag))
         except Exception as e:
             print(e)
-            exit("Could not tag: {} with {}".format(repo, tag))
+            exit("Could not tag: {} with {}".format(repocfg['repo'], tag))
 
     def getRepoName(self, repocfg):
-        m=re.search(r'/([^/]+)\.git\s*$', repocfg['repo'])
+        gitstr = repocfg['repo'] if ('repo' in repocfg) else repocfg
+        m=re.search(r'/([^/]+)\.git\s*$', gitstr)
         return m.group(1)
 
     def getCloneDir(self, repocfg):
-        return '{}/{}'.format(self.workdir, self.getRepoName(repocfg['repo']))
+        return '{}/{}'.format(self.workdir, self.getRepoName(repocfg))
 
     def cloneRepos(self):
         for repocfg in self.repos:
