@@ -1,9 +1,13 @@
 release-repo: git@github.com:terrywbrady/mrt-doc.git
 repositories:
-  - git@github.com:terrywbrady/mrt-doc.git
-  - git@github.com:terrywbrady/repo-tagger.git
-  - git@github.com:terrywbrady/boto3-s3-scripts.git
-  - git@github.com:terrywbrady/merritt-docker.git
+  # Provide a list of repos (and optionail branches) to be tagged
+  #- repo: git@github.com:terrywbrady/repo-tagger.git
+  #  branches: ['test-branch']
+  - repo: git@github.com:terrywbrady/mrt-doc.git
+  - repo: git@github.com:terrywbrady/repo-tagger.git
+    branches: ['test-branch']
+  - repo: git@github.com:terrywbrady/boto3-s3-scripts.git
+  - repo: git@github.com:terrywbrady/merritt-docker.git
 sprint-template: >
   ## Major accomplishments:
 

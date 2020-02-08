@@ -1,16 +1,21 @@
 # repo-tagger
 
-git log --pretty=oneline v7.0..v7.1
-git rev-list -1 --before "2020-01-31" master
+This code is a python wrapper that processes a list of related GitHub repos and tags them with a sprint number.
 
-## tagger sprint XX [---as-of-date YYYY-MM-DD] [--since TAG]
+## Prerequisites
+- Python3
+- A list of repositories to publish (SSH path)
+- You must have contributor rights in these repositories
+- Copy one of the template.yml files to config.yml
+
+## tagger sprint XX [---as-of-date YYYY-MM-DD] [--since TAG] [--title TITLE]
 
 Tag all repos with a sprint number.
 
 - --date Retroactively tag based on a date
 - --since Generate a report of changes since TAG
 
-## tagger deploy [--deploy-date YYYY-MM-DD] [--since TAG]
+## tagger deploy [--deploy-date YYYY-MM-DD] [--since TAG] [--title TITLE]
 
 Tag mrt-doc repos with deployment release.
 
@@ -21,3 +26,7 @@ Tag mrt-doc repos with deployment release.
 Generate a report of changes since TAG
 
 - --until TAG stop report at TAG
+
+## tagger delete TAG
+
+Delete a tag that was created by the tool.

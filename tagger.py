@@ -36,6 +36,8 @@ class MyTagger:
 
     def getParser(self):
         parser = argparse.ArgumentParser(prog='tagger.py')
+        parser.add_argument('--no-clone', dest='no_clone', default=False, action='store_true')
+
         subparsers=parser.add_subparsers()
         sp_sprint=subparsers.add_parser('sprint')
         sp_sprint.add_argument('num', nargs=1, type=int)
@@ -103,8 +105,9 @@ class MyTagger:
             print(e)
             exit("Could not clone {}".format(repo))
 
-    def oscall(self, command, redirect=False):
-        print(command)
+    def oscall(self, command, redirect=False, echo=True):
+        if (echo):
+            print(command)
         if (redirect):
             command += " >> clone.txt 2>&1"
         os.system(command)
@@ -198,19 +201,23 @@ class MyTagger:
 
     def tagReportRange(self, label, title, since, until):
         rpt = "{}/report.md".format(self.pwd)
-        self.oscall("echo '# {} Release Report ({} - {})' > {}".format(title, since, until, rpt))
+        self.oscall("echo '# {} Release Report ({} - {})' > {}".format(title, since, until, rpt), echo=False)
         if (label in self.config):
-            self.oscall('echo "{}" >> {}'.format(self.config[label], rpt))
+            self.oscall('echo "{}" >> {}'.format(self.config[label], rpt), echo=False)
         for repocfg in self.repos:
             self.dir(self.getCloneDir(repocfg))
-            self.oscall("echo '## {}' >> {}".format(self.getRepoName(repocfg), rpt))
-            self.oscall("git log --date=short --format='- %h %ad %s' {}..{} >> {}".format(since,until,rpt))
+            try:
+                self.oscall("echo '## {}' >> {}".format(self.getRepoName(repocfg), rpt), echo=False)
+                self.oscall("git log --date=short --format='- %h %ad %s' {}..{} | sed -e 's/#//g' >> {}".format(since,until,rpt), echo=False)
+            except Exception as e:
+                print(e)
         print()
         print(" ** Paste the contents of {} into {}".format(rpt, self.getRepoName(self.release)))
         print()
 
 myTagger = MyTagger()
 args = myTagger.parse()
-myTagger.initDir()
-myTagger.cloneRepos()
+if (args.no_clone == False):
+    myTagger.initDir()
+    myTagger.cloneRepos()
 args.action(args)
