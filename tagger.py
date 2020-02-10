@@ -58,7 +58,7 @@ class MyTagger:
         sp_report.set_defaults(action=self.tagReport)
 
         sp_delete=subparsers.add_parser('delete')
-        sp_delete.add_argument('tag', nargs=1, type=self.parseTag)
+        sp_delete.add_argument('tag', nargs='+', type=self.parseTag)
         sp_delete.set_defaults(action=self.tagDelete)
         return parser
 
@@ -112,14 +112,14 @@ class MyTagger:
             command += " >> clone.txt 2>&1"
         os.system(command)
 
-    def getCommit(self, date):
+    def getCommit(self, date, branch):
         if (date == None):
             res = subprocess.run(
                 [
                     "git",
                     "rev-list",
                     "-1",
-                    "master"
+                    branch
                 ],
                 capture_output=True
             )
@@ -132,7 +132,7 @@ class MyTagger:
                     "-1",
                     "--before",
                     date,
-                    "master"
+                    branch
                 ],
                 capture_output=True
             )
@@ -147,9 +147,9 @@ class MyTagger:
     def tagBranch(self, repocfg, branch, tag, date, title):
         try:
             name = self.getRepoName(repocfg)
-            print("Tagging {} with {}".format(name, tag))
+            print(" ==> Tagging {} with {}".format(name, tag))
             self.dir(self.getCloneDir(repocfg))
-            commit = self.getCommit(date)
+            commit = self.getCommit(date, branch)
             print(commit)
             if (commit != ""):
                 self.oscall("git tag -a -m '{}' {} {}".format(title, tag, commit))
@@ -184,15 +184,16 @@ class MyTagger:
         tag='deploy-{}'.format(date)
         title='Deployment {}: {}'.format(date, args.title[0])
         if (args.since):
-            self.tagReportRange("deploy-template", title, args.since[0], self.getCommit(None))
+            self.tagReportRange("deploy-template", title, args.since[0], self.getCommit(None, "master"))
         self.tag(self.release, tag, date, title)
 
     def tagDelete(self, args):
         for repocfg in self.repos:
             self.dir(self.getCloneDir(repocfg))
-            tag=args.tag[0] if args.tag else "not-applicable"
-            self.oscall("git tag -d {}".format(tag))
-            self.oscall("git push --delete origin {}".format(tag))
+            if args.tag:
+                for tag in args.tag:
+                    self.oscall("git tag -d {}".format(tag))
+                    self.oscall("git push --delete origin {}".format(tag))
 
     def tagReport(self, args):
         since=args.since[0]
