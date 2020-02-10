@@ -1,3 +1,5 @@
+This project has migrated to [cdluc3/mrt-repo-tagger](https://github.com/cdluc3/mrt-repo-tagger)
+
 # repo-tagger
 
 This code is a python wrapper that processes a list of related GitHub repos and tags them with a sprint number.
