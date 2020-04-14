@@ -34,3 +34,7 @@ jobs:
 
     - name: Ensure Release
       uses: lomocc/create-release@v1
+      with:
+        tag_name: my_rel_1
+        release_name: The name of the release
+        body: Sample Body 
